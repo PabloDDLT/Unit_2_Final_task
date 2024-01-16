@@ -5,50 +5,53 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.WebDriverWait;
+
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import java.time.Duration;
+import java.util.List;
 
 
-public class WeatherAppTest extends BaseTest{
- private final By PRIVACY_ACCEPTANCE=By.className("policy-accept");
+public class WeatherAppTest extends BaseTest {
+    private static final By PRIVACY_ACCEPTANCE = By.xpath("//*[contains(@class, 'policy-accept')]");
 
- private final By SEARCHING_BAR=By.className("search-input");
- private final String CITY_NAME="New York";
- private final By FIRST_RESULT=By.xpath("//div[@class='search-bar-result search-result source-accuweather'][1]");
- private final By SEARCH_HEADER=By.className("header-loc");
- private final String CITY_REGEX="\\b" + CITY_NAME + "\\b";
+    private static final By SEARCHING_BAR = By.xpath("//*[contains(@class, 'search-input')]");
 
- @Test
- public void weatherAppTest(){
+    private static final String CITY_NAME = "New York";
+    private static final By RESULTS = By.xpath("//div[contains(@class, 'source-accuweather')]");
 
-     //Step 1.- Consent data usage.
-     driver.findElement(PRIVACY_ACCEPTANCE).click();
+    private static final By SEARCH_HEADER = By.xpath("//*[contains(@class, 'header-loc')]");
+    private static final String CITY_REGEX = "\\b" + CITY_NAME + "\\b";
 
-     //Step 2.- Input "New York" in the search field.
-     driver.findElement(SEARCHING_BAR).sendKeys(CITY_NAME);
-     WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
-     WebElement firstResult = wait.until(ExpectedConditions.elementToBeClickable(FIRST_RESULT));
+    @Test
+    public void weatherAppTest() {
 
-     //Checking a result list is displayed
-     Assert.assertTrue(anyResults(firstResult),"there aren't any results for the search");
 
-     //Step 3.- Click on the first search result.
-     firstResult.click();
+        driver.findElement(PRIVACY_ACCEPTANCE).click();
 
-     wait.until(ExpectedConditions.elementToBeClickable(SEARCH_HEADER));
-     //Checking the header contains city name from search
-     Assert.assertTrue(driver.findElement(SEARCH_HEADER).getText().matches(".*" + CITY_REGEX + ".*"),"No match found");
 
- }
-    private boolean anyResults(WebElement element){
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        driver.findElement(SEARCHING_BAR).sendKeys(CITY_NAME);
+        wait.until(ExpectedConditions.elementToBeClickable(RESULTS));
+        List<WebElement> searchResults = driver.findElements(RESULTS);
+
+
+
+        Assert.assertTrue(waitForElementVisible(searchResults.get(0)), "there aren't any results for the search");
+
+
+        searchResults.get(0).click();
+
+        wait.until(ExpectedConditions.elementToBeClickable(SEARCH_HEADER));
+
+        Assert.assertTrue(driver.findElement(SEARCH_HEADER).getText().matches(".*" + CITY_REGEX + ".*"), "No match found");
+
+    }
+
+    private boolean waitForElementVisible(WebElement element) {
+
         try {
             wait.until(ExpectedConditions.visibilityOf(element));
-        }
-        catch (TimeoutException exception){
+        } catch (TimeoutException exception) {
             return false;
         }
         return true;
